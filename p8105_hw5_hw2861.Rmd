@@ -33,7 +33,7 @@ homicide_df =
 ### Summarize within cities: to obtain the total number of homicides and the number of unsolved homicides
 
 **The total number of homicides and the number of unsolved homicides in each cities.** 
-```{r homicides1}
+```{r summary1}
 homicides_df_number= 
   homicide_df %>%
   select(city_state,status)%>%
@@ -44,3 +44,33 @@ homicides_df_number=
 
     knitr::kable(homicides_df_number)
 ```
+
+**The total number of homicides and the number of unsolved homicides in (e.g. “Baltimore, MD”)  cities.** 
+```{r summary_md}
+homicides_df_md= 
+  homicide_df %>%
+  select(city_state,status)%>%
+  filter(city_state == "Baltimore,MD") %>%
+  group_by(city_state)%>%
+  summarize(
+    total_homicides=n(),
+    unsolved_homicides=sum(status=="unsolved")) 
+
+    knitr::kable(homicides_df_md)
+```
+
+**The total number of homicides in “Baltimore, MD” is 2827 and the number of unsolved homicides in “Baltimore, MD” is 1825.**
+
+### For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved
+```{r homicides_md_test}
+Baltimore_prop=prop.test(
+  x= homicides_df_number %>% filter(city_state == "Baltimore,MD")%>% pull(unsolved_homicides), 
+  n= homicides_df_number %>% filter(city_state == "Baltimore,MD")%>% pull(total_homicides)
+  ) %>% 
+  broom::tidy()%>% 
+  select(estimate,conf.low,conf.high)
+
+Baltimore_prop
+```
+**The proportion of homicides that are unsolved in “Baltimore, MD”  is `r Baltimore_prop$estimate` . 
+The 95CI of the proportion is between `r Baltimore_prop$conf.low` and  `r Baltimore_prop$conf.high`.**
