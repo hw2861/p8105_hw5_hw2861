@@ -6,25 +6,41 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
+library(tidyverse)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+## Problem 2
+### Describe the raw data
+```{r homicides_raw}
+homicide_raw_df = 
+  read_csv("./Data/homicide-data.csv")
 ```
 
-## Including Plots
+This raw dataset has `r nrow(homicide_raw_df)` observations and `r ncol(homicide_raw_df)` variables. It collected data on `r nrow(homicide_raw_df)` criminal homicides over the past decade in 50 of the largest American cities. The data included the location of the killing, whether an arrest was made and, in most cases, basic demographic information about each victim.
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r homicides}
+homicide_df = 
+  read_csv("./Data/homicide-data.csv") %>% 
+  mutate(
+    city_state = str_c(city, state, sep = ","),
+    city_state = recode(city_state,"Tulsa,AL" = "Tulsa,OK"),
+    status = case_when(
+      disposition == "Closed without arrest" | disposition == "Open/No arrest"   ~ "unsolved",
+      TRUE ~ "solved"))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Summarize within cities: to obtain the total number of homicides and the number of unsolved homicides
+
+**The total number of homicides and the number of unsolved homicides in each cities.** 
+```{r homicides1}
+homicides_df_number= 
+  homicide_df %>%
+  select(city_state,status)%>%
+  group_by(city_state)%>%
+  summarize(
+    total_homicides=n(),
+    unsolved_homicides=sum(status=="unsolved")) 
+
+    knitr::kable(homicides_df_number)
+```
