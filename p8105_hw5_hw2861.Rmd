@@ -137,3 +137,32 @@ return(t_test)
 }
 ```
 
+
+**Generate 5000 datasets from the model and repeat the above for different mu**
+```{r }
+sim_results_df = 
+  tibble(mu = c(0,1,2,3,4,5,6)) %>% 
+  mutate(
+    output_lists = map(.x = mu, ~rerun(5000, ttest_function(mu = .x))),
+    estimate_dfs = map(output_lists, bind_rows)) %>% 
+  select(-output_lists) %>% 
+  unnest(estimate_dfs)
+```
+
+### Make a plot showing the proportion of times the null was rejected
+```{r test_plot}
+sim_results_df %>%
+  group_by(mu)%>%
+  summarize(
+    total=n(),
+    rejected = sum(p.value<0.05),
+    prop = rejected/ total) %>% 
+  ggplot(aes(x = mu, y = prop)) +
+  geom_point() + 
+  geom_line() +
+  labs(
+    x = "μ value",
+    y = "The proportion of times the null was rejected",
+    title = "Relationship between the power and the mean")+
+  theme(plot.title = element_text(hjust = 0.2),axis.text = element_text(size = 13))
+```
