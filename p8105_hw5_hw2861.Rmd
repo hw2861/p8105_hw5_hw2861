@@ -114,3 +114,5 @@ city_prop_df %>%
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) + 
   theme(axis.text.x = element_text(angle = 80, hjust = 1))
 ```
+
+## Problem 3
