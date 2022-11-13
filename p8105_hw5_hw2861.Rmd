@@ -72,9 +72,12 @@ Baltimore_prop=prop.test(
   select(estimate,conf.low,conf.high)
 
 Baltimore_prop
+
+saveRDS(Baltimore_prop, file = "./result/Baltimore_prop.rds")
 ```
 **The proportion of homicides that are unsolved in “Baltimore, MD”  is `r Baltimore_prop$estimate` . 
 The 95CI of the proportion is between `r Baltimore_prop$conf.low` and  `r Baltimore_prop$conf.high`.**
+I Saved `the output` to a RDS file.
 
 ### Now run prop.test for each of the cities in my dataset.
 
