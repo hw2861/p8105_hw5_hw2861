@@ -163,6 +163,50 @@ sim_results_df %>%
   labs(
     x = "μ value",
     y = "The proportion of times the null was rejected",
-    title = "Relationship between the power and the mean")+
-  theme(plot.title = element_text(hjust = 0.2),axis.text = element_text(size = 13))
+    title = "Association between effect size and power")+
+  theme(plot.title = element_text(hjust = 0.5),axis.text = element_text(size = 13))
 ```
+
+**Describe the association between effect size and power**:
+At effect sizes < 4, power increases as effect size increases. 
+At effect sizes > 4, the power tends to stabilize at 1.
+
+
+### Make 2 plots about the average estimate of μ^ 
+The first plot: showing the average estimate of μ^ on the y axis and the true value of μ on the x axis. 
+The second plot: showing the average estimate of μ^ only in samples for which the null was rejected on the y axis and the true value of μ on the x axis.
+```{r }
+plot1=
+  sim_results_df %>%
+  group_by(mu)%>%
+   summarize(
+    total=n(),
+    mu_hat=mean(estimate))%>%
+    mutate(type = "Total sample")
+
+
+
+plot2= 
+  sim_results_df %>%
+  filter(p.value<0.05)%>%
+  group_by(mu)%>%
+   summarize(
+    total=n(),
+    mu_hat=mean(estimate))%>%
+    mutate(type = "Samples for which the null was rejected")
+    
+    
+combine = full_join(plot1, plot2)%>%
+   ggplot(aes(y = mu_hat, x = mu,color=type))+
+    geom_line(size=1.3) +
+    geom_point(size=2)+
+    labs(
+    x = "The true value of μ",
+    y = "The average estimate of μ^",
+    title = "Average estimate mean vs The true mean")+
+  theme(plot.title = element_text(hjust = 0.5),axis.text = element_text(size = 13),legend.position = "bottom",)
+
+combine
+```
+
+The sample average estimate of μ^ for which the null is rejected is  approximately equal to the true value when the the true μ >4. They have relatively large differences when the true value of 0< μ < 4. 
