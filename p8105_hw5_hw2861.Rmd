@@ -98,7 +98,19 @@ city_prop_df =
   nest(data = total_homicides:unsolved_homicides) %>% 
   mutate(result = map(data,prop_function)) %>% 
   select(city_state, result)%>% 
-  unnest(result) %>% 
-  mutate( estimate_prop = estimate)%>% 
-  select(city_state, estimate_prop,conf.low,conf.high)
+  unnest(result)
+```
+
+
+### Create a plot that shows the estimates and 95CIs for each city
+```{r city_prop_plot}
+city_prop_df %>% 
+  mutate(city_state = fct_reorder(city_state, estimate)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() + 
+  labs(
+    x = "City,State",
+    y = "The proportion of homicides unsolved")+
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) + 
+  theme(axis.text.x = element_text(angle = 80, hjust = 1))
 ```
