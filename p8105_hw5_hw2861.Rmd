@@ -77,7 +77,7 @@ saveRDS(Baltimore_prop, file = "./result/Baltimore_prop.rds")
 ```
 **The proportion of homicides that are unsolved in “Baltimore, MD”  is `r Baltimore_prop$estimate` . 
 The 95CI of the proportion is between `r Baltimore_prop$conf.low` and  `r Baltimore_prop$conf.high`.**
-I Saved `the output` to a RDS file.
+I Saved the output to a RDS file.
 
 ### Now run prop.test for each of the cities in my dataset.
 
@@ -111,7 +111,7 @@ city_prop_df %>%
 ## Problem 3
 **In this problem, I will conduct a simulation to explore power in a one-sample t-test.**
 
-### First set the following design elements and generate 5000 datasets from the model given.
+### Set the following design elements and generate 5000 datasets from the model given.
 
 **I create a function for the t-test**
 ```{r simulation}
@@ -131,7 +131,7 @@ return(t_test)
 ```
 
 
-**Generate 5000 datasets from the model and repeat the above for different mu**
+**Generate 5000 datasets from the model and repeat the above for different mu（0 to 6)**
 ```{r }
 sim_results_df = 
   tibble(mu = c(0,1,2,3,4,5,6)) %>% 
@@ -161,8 +161,8 @@ sim_results_df %>%
 ```
 
 **Describe the association between effect size and power**:
-At effect sizes < 4, power increases as effect size increases. 
-At effect sizes > 4, the power tends to stabilize at 1.
+* At μ value < 4, power increases as the effect size increases. 
+* At μ value > 4, the power tends to stabilize at 1.
 
 
 ### Make 2 plots about the average estimate of μ^ 
@@ -202,4 +202,13 @@ combine = full_join(plot1, plot2)%>%
 combine
 ```
 
-The sample average estimate of μ^ for which the null is rejected is  approximately equal to the true value when the the true μ >4. They have relatively large differences when the true value of 0< μ < 4. 
+For which the null is rejected,
+When the true μ >4, the sample average estimate of μ^ is approximately equal to the true value. 
+when the true μ value is between 0 and 4(especially if true value = 1):They have relatively large differences.
+
+
+When the true μ >4, the effect size is large enough and the proportion of times the null was rejected is nearly 1. At this point, the power is strong and almost all samples are included and consider as rejected null. The average estimated mean calculated from all 5000 datasets is close to the true mean.
+
+
+When the true 0 <μ <4, the effect size is Not large enough and the true μ is relatively close to 0. The proportion of times the null was rejected is low. At this point, many samples were screened out because they did not reject Null. Only a few number of datasets are included in our analysis (perhaps even just a few hundred).Then, average estimated mean is not an good representation of true value.
+
