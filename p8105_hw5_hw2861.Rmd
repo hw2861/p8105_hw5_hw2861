@@ -19,6 +19,7 @@ homicide_raw_df =
 
 This raw dataset has `r nrow(homicide_raw_df)` observations and `r ncol(homicide_raw_df)` variables. It collected data on `r nrow(homicide_raw_df)` criminal homicides over the past decade in 50 of the largest American cities. The data included the location of the killing, whether an arrest was made and, in most cases, basic demographic information about each victim.
 
+**create Create a city_state variable**
 ```{r homicides}
 homicide_df = 
   read_csv("./Data/homicide-data.csv") %>% 
@@ -77,28 +78,17 @@ The 95CI of the proportion is between `r Baltimore_prop$conf.low` and  `r Baltim
 
 ### Now run prop.test for each of the cities in my dataset.
 
-**First, Create a function for prop.test**
-```{r prop_function}
-prop_function = function(city) {
-  
- test= prop.test(
-     x= city %>% pull(unsolved_homicides), 
-     n= city %>% pull(total_homicides) )%>%
-    broom::tidy() %>%
-    select(estimate, conf.low,conf.high)
- 
- return(test)
-}
-```
-
 **Run the function for each of the cities**
 ```{r city_prop_df}
 city_prop_df =
   homicides_df_number %>%
-  nest(data = total_homicides:unsolved_homicides) %>% 
-  mutate(result = map(data,prop_function)) %>% 
-  select(city_state, result)%>% 
-  unnest(result)
+  mutate(
+    tests_pre = map2(unsolved_homicides, total_homicides, prop.test),
+    test = map(tests_pre, broom::tidy)
+  ) %>%
+  select(city_state,test)%>%
+  unnest(test)%>%
+  select(city_state, estimate, conf.low, conf.high)
 ```
 
 
