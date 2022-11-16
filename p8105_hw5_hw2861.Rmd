@@ -10,6 +10,49 @@ library(tidyverse)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Problem 1
+
+The code chunk below imports the data in individual spreadsheets contained in `./data/zip_data/`. To do this, I create a dataframe that includes the list of all files in that directory and the complete path to each file. As a next step, I `map` over paths and import data using the `read_csv` function. Finally, I `unnest` the result of `map`.
+
+```{r}
+full_df = 
+  tibble(
+    files = list.files("./Data/"),
+    path = str_c("./Data/", files)
+  ) %>% 
+  mutate(data = map(path, read_csv)) %>% 
+  unnest()
+```
+
+The result of the previous code chunk isn't tidy -- data are wide rather than long, and some important variables are included as parts of others. The code chunk below tides the data using string manipulations on the file, converting from wide to long, and selecting relevant variables. 
+
+```{r}
+tidy_df = 
+  full_df %>% 
+  mutate(
+    files = str_replace(files, ".csv", ""),
+    group = str_sub(files, 1, 3)) %>% 
+  pivot_longer(
+    week_1:week_8,
+    names_to = "week",
+    values_to = "outcome",
+    names_prefix = "week_") %>% 
+  mutate(week = as.numeric(week)) %>% 
+  select(group, subj = files, week, outcome)
+```
+
+Finally, the code chunk below creates a plot showing individual data, faceted by group. 
+
+```{r}
+tidy_df %>% 
+  ggplot(aes(x = week, y = outcome, group = subj, color = group)) + 
+  geom_point() + 
+  geom_path() + 
+  facet_grid(~group)
+```
+
+This plot suggests high within-subject correlation -- subjects who start above average end up above average, and those that start below average end up below average. Subjects in the control group generally don't change over time, but those in the experiment group increase their outcome in a roughly linear way. 
+
 ## Problem 2
 ### Describe the raw data
 ```{r homicides_raw}
@@ -31,6 +74,8 @@ homicide_df =
       TRUE ~ "solved"))
 ```
 
+After cleaning, This dataset now has `r nrow(homicide_df)` observations and `r ncol(homicide_df)` variables. I created 2 new variables in this dataset. One is **"city_state"** and the other is **"status"**. The status is for marking the status of homicides as solved or unsolved.
+
 ### Summarize within cities: to obtain the total number of homicides and the number of unsolved homicides
 
 **The total number of homicides and the number of unsolved homicides in each cities.** 
@@ -46,7 +91,7 @@ homicides_df_number=
     knitr::kable(homicides_df_number)
 ```
 
-**The total number of homicides and the number of unsolved homicides in (e.g. “Baltimore, MD”)  cities.** 
+**The total number of homicides and the number of unsolved homicides in a specific (e.g. “Baltimore, MD”)  cities.** 
 ```{r summary_baltimore}
 homicides_baltimore= 
   homicide_df %>%
@@ -130,6 +175,11 @@ return(t_test)
 }
 ```
 
+**Generate 5000 datasets from the model for mu=0*
+```{r simulation0}
+sim_0_df = rerun(5000,ttest_function(mu = 0)) %>%
+  bind_rows()
+```
 
 **Generate 5000 datasets from the model and repeat the above for different mu（0 to 6)**
 ```{r }
@@ -161,9 +211,14 @@ sim_results_df %>%
 ```
 
 **Describe the association between effect size and power**:
+The effect size can be calculated by dividing the mean difference by the standard deviation. And the mean difference is the differences between sample mean and the theoretical mean. 
+When the True μ value is lower, the power of the test is also lower.
+
 * At μ value < 4, power increases as the effect size increases. 
+
 * At μ value > 4, the power tends to stabilize at 1.
 
+Besides, If the effect size of the test is large, it is possible to detect such an effect in smaller sample numbers.
 
 ### Make 2 plots about the average estimate of μ^ 
 The first plot: showing the average estimate of μ^ on the y axis and the true value of μ on the x axis. 
@@ -202,13 +257,16 @@ combine = full_join(plot1, plot2)%>%
 combine
 ```
 
+Power depends on several factors, including: the sample size; the effect size; and the error variance.
+
 For which the null is rejected,
 When the true μ >4, the sample average estimate of μ^ is approximately equal to the true value. 
+
 when the true μ value is between 0 and 4(especially if true value = 1):They have relatively large differences.
 
 
-When the true μ >4, the effect size is large enough and the proportion of times the null was rejected is nearly 1. At this point, the power is strong and almost all samples are included and consider as rejected null. The average estimated mean calculated from all 5000 datasets is close to the true mean.
+When the true μ >4, the effect size is large enough and the proportion of times the null was rejected(power) is nearly 1. At this point, the power is strong and almost all samples are included and consider as rejected null. The average estimated mean calculated from all 5000 datasets is close to the true mean.
 
 
-When the true 0 <μ <4, the effect size is Not large enough and the true μ is relatively close to 0. The proportion of times the null was rejected is low. At this point, many samples were screened out because they did not reject Null. Only a few number of datasets are included in our analysis (perhaps even just a few hundred).Then, average estimated mean is not an good representation of true value.
+When the true 0 <μ <4, the effect size is Not large enough and the true μ is relatively close to 0. The proportion of times the null was rejected(power) is low. At this point, many samples were screened out because they did not reject Null. Only a few number of datasets are included in our analysis (perhaps even just a few hundred).Then, average estimated mean is not an good representation of true value.
 
